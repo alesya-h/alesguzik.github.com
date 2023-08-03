@@ -8,9 +8,22 @@
     <title>Russian Keyboard - русская клавиатура - Type Russian Online</title>
     <style>
         *{margin:0;padding:0}
-        html{overflow-y:scroll}
+        html{overflow-y:scroll; background-color:black}
         html,body{height:100%}
-        body{font-family:Verdana,Helvetica,Arial,Sans-Serif;font-size:87.5%;line-height:24px;color:#464646;filter:invert(1); background: black}
+        body{font-family:Verdana,Helvetica,Arial,Sans-Serif;font-size:87.5%;line-height:24px;color:#464646;
+        }
+        body::before{
+          content: "";
+          position: absolute;
+          top: 0; left: 0;
+          width: 100%; height: 100%;
+          background-image: url(stars.png);
+          /*background-size: cover;*/
+          background-position: center;
+          filter: opacity(25%);
+
+        }
+        #page{filter:invert(1);}
         a:link,a:visited,a:active{color:#005a9c;text-decoration:none}
         a:hover{text-decoration:underline}
         p{margin:.75em 0}
@@ -32,7 +45,7 @@
         ul.menu{list-style:none;padding-top:1em}
         li.menuitem{display:inline;padding:0;margin:0 0 0 1em}
         li.activemenuitem a{border-bottom:1px solid #3C0}
-        #editor{background-color:#ddd}
+        #editor{background: #ddd;position:relative}
         #action{text-align:left}
         #action button{padding:0 5px;vertical-align:middle;line-height:18px; font-size: 1.5em; padding: .5em; min-width: 2em; }
         #shrink,#enlarge{width:24px}
@@ -161,7 +174,7 @@
                 </p>
             </form>
 
-            <p><textarea id="editor" name="editor" rows="" cols="75"></textarea></p>
+            <p><div id="editor-wrap"><textarea id="editor" name="editor" rows="" cols="75"></textarea></div></p>
             <div id="keyboard"></div>
 
             <div class="wrap-collapsible">
