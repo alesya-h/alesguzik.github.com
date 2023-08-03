@@ -5,8 +5,6 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 
-    <link rel="apple-touch-icon" href="https://www.branah.com/apple-touch-icon.png">
-
     <title>Russian Keyboard - русская клавиатура - Type Russian Online</title>
     <style>
         *{margin:0;padding:0}
@@ -24,6 +22,7 @@
         td{vertical-align:top}
         rb{color:#057cb5;font-size:100%;margin-left:.5em}
         rt{color:#e0115f;font-size:100%}
+        .hidden{display: none}
         .clear{clear:both}
         .middle{vertical-align:middle}
         .top{vertical-align:top}
@@ -33,6 +32,7 @@
         ul.menu{list-style:none;padding-top:1em}
         li.menuitem{display:inline;padding:0;margin:0 0 0 1em}
         li.activemenuitem a{border-bottom:1px solid #3C0}
+        #editor{background-color:#ddd}
         #action{text-align:left}
         #action button{padding:0 5px;vertical-align:middle;line-height:18px}
         #shrink,#enlarge{width:24px}
@@ -52,6 +52,20 @@
         #branah-keyboard .branah-recessed span{color:#3C0}
         #branah-keyboard .branah-recessed-hover span{color:#ffd800}
         #branah-keyboard .branah-clear{clear:both}
+
+        /* collapsible */
+        input[type='checkbox']{ display: none; }
+        .wrap-collabsible { margin: 1.2rem 0; }
+        .lbl-toggle { display: block; font-weight: bold; font-family: monospace; font-size: 1.2rem; text-transform: uppercase; text-align: center; padding: 1rem; color: #DDD; background: #0069ff; cursor: pointer; border-radius: 7px; transition: all 0.25s ease-out; }
+        .lbl-toggle:hover { color: #FFF; }
+        .lbl-toggle::before { content: ' '; display: inline-block; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 5px solid currentColor; vertical-align: middle; margin-right: .7rem; transform: translateY(-2px); transition: transform .2s ease-out; }
+        .toggle:checked+.lbl-toggle::before { transform: rotate(90deg) translateX(-3px); }
+        .collapsible-content { max-height: 0px; overflow: hidden; transition: max-height .25s ease-in-out; }
+        .toggle:checked + .lbl-toggle + .collapsible-content { max-height: 650px; overflow: scroll; }
+        .toggle:checked+.lbl-toggle { border-bottom-right-radius: 0; border-bottom-left-radius: 0; }
+        .collapsible-content .content-inner { background: rgba(0, 105, 255, .2); border-bottom: 1px solid rgba(0, 105, 255, .45); border-bottom-left-radius: 7px; border-bottom-right-radius: 7px; padding: .5rem 1rem; }
+        .collapsible-content p { margin-bottom: 0; }
+
         @media only screen and (max-width:640px){
             #page{margin:0 2px}
             #header{margin-bottom:1em}
@@ -93,7 +107,7 @@
             .adslot_1{display:block;width:160px;height:600px}
             div.main_content{position:relative}
             ul.list{list-style:none;display:inline-block;width:160px}
-            #editor{width:607px;height:96px}
+            #editor{width:607px;height:500px}
         }
         @media only screen and (min-width:641px){
             #branah-keyboard{width:630px}
@@ -110,19 +124,21 @@
             #branah-right-ctrl,#branah-right-alt,#branah-escape{width:62px}
             #branah-left-ctrl,#branah-left-alt,#branah{width:60px}
         };
+
     </style>
 
 </head>
 <body>
     <div id="page">
         <div class="main_content">
-            <h1>Russian Keyboard - русская клавиатура</h1>
+            <div class="hidden">
+                <h1>Russian Keyboard - русская клавиатура</h1>
 
-            <p id="response"></p>
+                <p id="response"></p>
 
-            <h4>Click or type it... Copy it... And paste it... Done!</h4>
-
-            <form method="POST" action="https://api.branah.com/api/file/postBack" id="saveAsTextFile">
+                <h4>Click or type it... Copy it... And paste it... Done!</h4>
+            </div>
+            <form method="POST" action="#" id="saveAsTextFile">
                 <p id="action">
                     <button type="button" id="selectAll">Select All</button>
                     <button type="button" id="copy">Copy</button>
@@ -133,33 +149,39 @@
                     <button type="submit">Save Text</button>
                     <button type="button" title="Shrink letters" id="shrink">-</button>
                     <button type="button" title="Enlarge letters" id="enlarge">+</button>
-                    <br />
-                    <span class="nowrap"><a id="email" href="#" class="middle soft_button">Send Email</a></span>
-                    <span class="nowrap"><a id="postToTwitter" href="#" class="middle soft_button" target="_blank">Tweet in Russian</a></span>
-                    <span class="nowrap"><a id="searchGoogle" href="#" class="middle soft_button" target="_blank">Google in Russian</a></span>
-                    <span class="nowrap"><a id="translateGoogle" href="#" class="middle soft_button" target="_blank">Google Translate</a></span>
+                    <div class="hidden">
+                        <br />
+                        <span class="nowrap"><a id="email" href="#" class="middle soft_button">Send Email</a></span>
+                        <span class="nowrap"><a id="postToTwitter" href="#" class="middle soft_button" target="_blank">Tweet in Russian</a></span>
+                        <span class="nowrap"><a id="searchGoogle" href="#" class="middle soft_button" target="_blank">Google in Russian</a></span>
+                        <span class="nowrap"><a id="translateGoogle" href="#" class="middle soft_button" target="_blank">Google Translate</a></span>
+                    </div>
                 </p>
             </form>
 
             <p><textarea id="editor" name="editor" rows="" cols="75"></textarea></p>
             <div id="keyboard"></div>
 
-            <p><a title="Cyrillic to Latin converter" href="./cyrillic-to-latin">Cyrillic to Latin converter</a></p>
+            <div class="wrap-collapsible">
+                <input id="collapsible" class="toggle" type="checkbox">
+                <label for="collapsible" class="lbl-toggle">More Info</label>
+                <div class="collapsible-content">
+                    <div class="collapsible-inner">
+                        <p><a title="Cyrillic to Latin converter" href="./cyrillic-to-latin">Cyrillic to Latin converter</a></p>
 
-<p>This <em>Russian Keyboard</em> enables you to easily type Russian online without installing <em>Russian keyboard</em>. You can use your computer keyboard or mouse to type Russian letters with this online keyboard.</p>
-
-<p>Pressing <span class="button">Esc</span> on the Russian keyboard layout will toggle the mouse input between virtual QWERTY keyboard and virtual Russian keyboard. The key will also turn on/off your keyboard input conversion. Pressing <span class="button">Esc</span> on your keyboard has the same function.</p>
-
-<p>Press <span class="button">Shift</span> for additional Russian letters that are not visible on the keyboard.</p>
-
-<h3>Instructions for using Transliteration</h3>
-<p>Transliteration works more or less the same way as the phonetic input with some differences. These are jo(ё), Jo(Ё), zh(ж), Zh/ZH(Ж), kh(х), ts(ц), ch(ч), sh(ш), sc(щ), je(э), iu(ю), ia(я), '(ь), ''(Ь), &quot;(ъ), &quot;&quot;(Ъ), #(№), &lt;(«), &gt;(»), and --(—). Semicolon(;) can be used as a partition so that what is one the left and what is on the right are transliterated separately. For example t;s will produce тс instead of ц and i;a will produce иа instead of я.</p>
-
-<p>For mobile phones and tablets, touch and hold inside the text area to copy the text. You can then paste the text in any app such as Facebook, Twitter, email, or search app.</p>
-
-
-<!-- Responsive -->
-
+                        <p>This <em>Russian Keyboard</em> enables you to easily type Russian online without installing <em>Russian keyboard</em>. You can use your computer keyboard or mouse to type Russian letters with this online keyboard.</p>
+                        
+                        <p>Pressing <span class="button">Esc</span> on the Russian keyboard layout will toggle the mouse input between virtual QWERTY keyboard and virtual Russian keyboard. The key will also turn on/off your keyboard input conversion. Pressing <span class="button">Esc</span> on your keyboard has the same function.</p>
+                        
+                        <p>Press <span class="button">Shift</span> for additional Russian letters that are not visible on the keyboard.</p>
+                        
+                        <h3>Instructions for using Transliteration</h3>
+                        <p>Transliteration works more or less the same way as the phonetic input with some differences. These are jo(ё), Jo(Ё), zh(ж), Zh/ZH(Ж), kh(х), ts(ц), ch(ч), sh(ш), sc(щ), je(э), iu(ю), ia(я), '(ь), ''(Ь), &quot;(ъ), &quot;&quot;(Ъ), #(№), &lt;(«), &gt;(»), and --(—). Semicolon(;) can be used as a partition so that what is one the left and what is on the right are transliterated separately. For example t;s will produce тс instead of ц and i;a will produce иа instead of я.</p>
+                        
+                        <p>For mobile phones and tablets, touch and hold inside the text area to copy the text. You can then paste the text in any app such as Facebook, Twitter, email, or search app.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
