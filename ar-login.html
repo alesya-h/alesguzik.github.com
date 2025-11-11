@@ -17,7 +17,7 @@
             email = document.getElementById("email").value
             password = document.getElementById("password").value
             try {
-              await fetch('https://httpbin.org/post', {
+              const rawResponse = await fetch('https://httpbin.org/post', {
                 method: 'POST',
                 headers: {
                   'Accept': 'application/json',
