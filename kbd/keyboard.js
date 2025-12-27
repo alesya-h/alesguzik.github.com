@@ -426,5 +426,7 @@
         };
 
         util.addListener(window, "load", () => editor.init());
+        
+        return keyboard;
     };
 })();
