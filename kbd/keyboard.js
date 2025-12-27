@@ -318,6 +318,7 @@
             updateRecessed: function() {
                 const keyboardEl = document.getElementById("kb-keyboard");
                 keyboardEl.className = this.recessed ? "kb-recessed" : "";
+                if (config.onRecessedChange) config.onRecessedChange(this.recessed);
             },
 
             build: function() {

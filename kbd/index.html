@@ -17,7 +17,7 @@
                 <button type="button" id="clearAll">Clear All</button>
                 <button type="button" title="Shrink letters" id="shrink">-</button>
                 <button type="button" title="Enlarge letters" id="enlarge">+</button>
-                <button type="button" id="langSwitch" title="Switch language (Ctrl+Shift)" style="margin-left: 10px; font-weight: bold;">RU</button>
+                <button type="button" id="langSwitch" title="Switch language (Ctrl+Shift), Esc for English" style="margin-left: 10px; font-weight: bold;">RU</button>
             </p>
 
             <div class="editor-container">
@@ -57,15 +57,27 @@
         let currentLangIndex = 0;
         let keyboardInstance = null;
 
+        function updateLangIndicator() {
+            const lang = langs[currentLangIndex];
+            const recessed = keyboardInstance.recessed;
+            const baseCode = langCodes[lang];
+            const langSwitch = document.getElementById('langSwitch');
+            if (recessed) {
+                langSwitch.innerHTML = `${baseCode} <span style="font-weight:normal">(en)</span>`;
+            } else {
+                langSwitch.textContent = baseCode;
+            }
+        }
+
         function switchLanguage() {
             currentLangIndex = (currentLangIndex + 1) % langs.length;
             const lang = langs[currentLangIndex];
             
             document.getElementById('keyboardLabel').textContent = langNames[lang] + ' Keyboard Input';
-            document.getElementById('langSwitch').textContent = langCodes[lang];
             
             keyboardInstance.charMap = charMaps[lang];
             keyboardInstance.build();
+            updateLangIndicator();
         }
 
         document.addEventListener('keydown', function(event) {
@@ -78,7 +90,10 @@
         document.getElementById('langSwitch').addEventListener('click', switchLanguage);
 
         keyboardInstance = new Keyboard({
-            charMap: charMaps.russian
+            charMap: charMaps.russian,
+            onRecessedChange: function(recessed) {
+                updateLangIndicator();
+            }
         });
     </script>
 </body>
