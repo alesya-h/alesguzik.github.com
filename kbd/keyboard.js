@@ -33,25 +33,40 @@
             },
 
             insertAtCaret: function(element, text) {
-                const start = this.getSelectionStart(element);
-                const end = this.getSelectionEnd(element);
-                const value = element.value;
-                element.value = value.substring(0, start) + text + value.substring(end);
-                this.setCaretPosition(element, start + text.length, 0);
+                if (!element) return;
+                element.focus();
+                // Use execCommand to preserve native undo stack
+                if (document.execCommand) {
+                    document.execCommand('insertText', false, text);
+                } else {
+                    // Fallback for browsers that don't support execCommand
+                    const start = element.selectionStart;
+                    const end = element.selectionEnd;
+                    const value = element.value;
+                    element.value = value.substring(0, start) + text + value.substring(end);
+                    this.setCaretPosition(element, start + text.length, 0);
+                }
             },
 
             deleteAtCaret: function(element, before, after) {
-                const start = this.getSelectionStart(element);
-                const end = this.getSelectionEnd(element);
-                const length = element.value.length;
+                if (!element) return;
+                element.focus();
+                const start = element.selectionStart;
+                const end = element.selectionEnd;
                 
+                // If there's a selection, just delete it
+                if (start !== end) {
+                    document.execCommand('delete', false);
+                    return;
+                }
+                
+                // Otherwise select the characters to delete, then delete
+                const length = element.value.length;
                 if (before > start) before = start;
                 if (end + after > length) after = length - end;
                 
-                const deleted = element.value.substring(start - before, end + after);
-                element.value = element.value.substring(0, start - before) + element.value.substring(end + after);
-                this.setCaretPosition(element, start - before, 0);
-                return deleted;
+                element.setSelectionRange(start - before, end + after);
+                document.execCommand('delete', false);
             },
 
             getSelectionStart: function(element) {
@@ -160,6 +175,10 @@
             capsLock: false,
             recessed: false,
 
+            getActiveTextarea: function() {
+                return editorManager.lastFocusedTextarea;
+            },
+
             keydown: function(event) {
                 if (event.ctrlKey || event.altKey || event.metaKey) {
                     return;
@@ -204,9 +223,10 @@
                     char = this.charMap.shift[code];
                 }
 
-                if (char !== undefined) {
+                const activeTextarea = this.getActiveTextarea();
+                if (char !== undefined && activeTextarea) {
                     util.preventDefault(event);
-                    util.insertAtCaret(editor.element, char);
+                    util.insertAtCaret(activeTextarea, char);
                 }
             },
 
@@ -228,6 +248,8 @@
 
                 const code = this.buttonIdMap[buttonId];
                 if (code === undefined) return;
+
+                const activeTextarea = this.getActiveTextarea();
 
                 if (code === "ShiftLeft" || code === "ShiftRight") {
                     this.shift = true;
@@ -252,18 +274,20 @@
                     return;
                 }
 
+                if (!activeTextarea) return;
+
                 if (code === "Tab") {
-                    util.insertAtCaret(editor.element, "\t");
+                    util.insertAtCaret(activeTextarea, "\t");
                     return;
                 }
 
                 if (code === "Backspace") {
-                    util.deleteAtCaret(editor.element, 1, 0);
+                    util.deleteAtCaret(activeTextarea, 1, 0);
                     return;
                 }
 
                 if (code === "Enter") {
-                    util.insertAtCaret(editor.element, "\n");
+                    util.insertAtCaret(activeTextarea, "\n");
                     return;
                 }
 
@@ -280,7 +304,7 @@
                 }
 
                 if (char !== undefined) {
-                    util.insertAtCaret(editor.element, char);
+                    util.insertAtCaret(activeTextarea, char);
                 }
             },
 
@@ -366,67 +390,173 @@
             }
         };
 
-        const editor = {
-            element: null,
-            history: [],
-            historyIndex: -1,
+        const editorManager = {
+            lastFocusedTextarea: null,
+            docCounter: 1,
+            paneIdCounter: 0,
 
             init: function() {
-                this.element = document.getElementById("editor");
                 keyboard.build();
 
-                util.addListener(this.element, "keydown", keyboard.keydown.bind(keyboard));
-                util.addListener(this.element, "keyup", keyboard.keyup.bind(keyboard));
+                // Create initial textareas
+                this.createPane("Scratch", false);
+                this.createPane("Doc1", true);
 
+                // Set up action buttons
                 util.addListener(document.getElementById("selectAll"), "click", () => {
-                    this.element.select();
+                    if (this.lastFocusedTextarea) {
+                        this.lastFocusedTextarea.select();
+                    }
                 });
 
                 util.addListener(document.getElementById("copy"), "click", () => {
-                    this.element.select();
-                    document.execCommand("copy");
+                    if (this.lastFocusedTextarea) {
+                        this.lastFocusedTextarea.select();
+                        document.execCommand("copy");
+                    }
                 });
 
                 util.addListener(document.getElementById("clearAll"), "click", () => {
-                    this.element.value = "";
+                    if (this.lastFocusedTextarea) {
+                        this.lastFocusedTextarea.value = "";
+                    }
                 });
 
                 util.addListener(document.getElementById("shrink"), "click", () => {
-                    const size = parseInt(window.getComputedStyle(this.element).fontSize);
-                    this.element.style.fontSize = (size - 2) + "px";
+                    if (this.lastFocusedTextarea) {
+                        const size = parseInt(window.getComputedStyle(this.lastFocusedTextarea).fontSize);
+                        this.lastFocusedTextarea.style.fontSize = (size - 2) + "px";
+                    }
                 });
 
                 util.addListener(document.getElementById("enlarge"), "click", () => {
-                    const size = parseInt(window.getComputedStyle(this.element).fontSize);
-                    this.element.style.fontSize = (size + 2) + "px";
+                    if (this.lastFocusedTextarea) {
+                        const size = parseInt(window.getComputedStyle(this.lastFocusedTextarea).fontSize);
+                        this.lastFocusedTextarea.style.fontSize = (size + 2) + "px";
+                    }
                 });
 
-                util.addListener(this.element, "input", () => {
-                    this.history = this.history.slice(0, this.historyIndex + 1);
-                    this.history.push(this.element.value);
-                    this.historyIndex = this.history.length - 1;
+                util.addListener(document.getElementById("addTextarea"), "click", () => {
+                    this.docCounter++;
+                    this.createPane("Doc" + this.docCounter, true);
                 });
 
                 util.addListener(document.getElementById("undo"), "click", () => {
-                    if (this.historyIndex > 0) {
-                        this.historyIndex--;
-                        this.element.value = this.history[this.historyIndex];
+                    if (this.lastFocusedTextarea) {
+                        this.lastFocusedTextarea.focus();
+                        document.execCommand("undo", false);
                     }
                 });
 
                 util.addListener(document.getElementById("redo"), "click", () => {
-                    if (this.historyIndex < this.history.length - 1) {
-                        this.historyIndex++;
-                        this.element.value = this.history[this.historyIndex];
+                    if (this.lastFocusedTextarea) {
+                        this.lastFocusedTextarea.focus();
+                        document.execCommand("redo", false);
                     }
                 });
 
-                this.history.push(this.element.value);
-                this.historyIndex = 0;
+                // Global Tab handler for cycling between textareas
+                util.addListener(document, "keydown", (event) => {
+                    if (event.key === "Tab") {
+                        const textareas = Array.from(document.querySelectorAll(".editor-textarea"));
+                        if (textareas.length < 2) return;
+                        
+                        const currentIndex = textareas.indexOf(this.lastFocusedTextarea);
+                        if (currentIndex === -1) return;
+                        
+                        event.preventDefault();
+                        
+                        let nextIndex;
+                        if (event.shiftKey) {
+                            // Shift+Tab: go to previous
+                            nextIndex = (currentIndex - 1 + textareas.length) % textareas.length;
+                        } else {
+                            // Tab: go to next
+                            nextIndex = (currentIndex + 1) % textareas.length;
+                        }
+                        
+                        textareas[nextIndex].focus();
+                    }
+                });
+            },
+
+            createPane: function(title, deletable) {
+                const container = document.getElementById("editor-container");
+                const paneId = "pane-" + (this.paneIdCounter++);
+                
+                const pane = document.createElement("div");
+                pane.className = "editor-pane";
+                pane.id = paneId;
+
+                const header = document.createElement("div");
+                header.className = "editor-pane-header";
+
+                const titleInput = document.createElement("input");
+                titleInput.type = "text";
+                titleInput.className = "editor-title";
+                titleInput.value = title;
+
+                header.appendChild(titleInput);
+
+                if (deletable) {
+                    const deleteBtn = document.createElement("button");
+                    deleteBtn.type = "button";
+                    deleteBtn.className = "delete-pane";
+                    deleteBtn.textContent = "×";
+                    deleteBtn.title = "Delete this document";
+                    util.addListener(deleteBtn, "click", () => {
+                        this.deletePane(paneId);
+                    });
+                    header.appendChild(deleteBtn);
+                }
+
+                const textarea = document.createElement("textarea");
+                textarea.className = "editor-textarea";
+
+                // Track focus
+                util.addListener(textarea, "focus", () => {
+                    this.lastFocusedTextarea = textarea;
+                    // Update visual indicator
+                    document.querySelectorAll(".editor-pane").forEach(p => p.classList.remove("focused"));
+                    pane.classList.add("focused");
+                });
+
+                // Keyboard events for Cyrillic typing
+                util.addListener(textarea, "keydown", keyboard.keydown.bind(keyboard));
+                util.addListener(textarea, "keyup", keyboard.keyup.bind(keyboard));
+
+                pane.appendChild(header);
+                pane.appendChild(textarea);
+                container.appendChild(pane);
+
+                // Focus the new textarea
+                textarea.focus();
+
+                return pane;
+            },
+
+            deletePane: function(paneId) {
+                const pane = document.getElementById(paneId);
+                if (!pane) return;
+
+                const textarea = pane.querySelector("textarea");
+                const wasFocused = (this.lastFocusedTextarea === textarea);
+
+                pane.remove();
+
+                // If the deleted pane was focused, focus the first available textarea
+                if (wasFocused) {
+                    const firstTextarea = document.querySelector(".editor-pane textarea");
+                    if (firstTextarea) {
+                        firstTextarea.focus();
+                    } else {
+                        this.lastFocusedTextarea = null;
+                    }
+                }
             }
         };
 
-        util.addListener(window, "load", () => editor.init());
+        util.addListener(window, "load", () => editorManager.init());
         
         return keyboard;
     };

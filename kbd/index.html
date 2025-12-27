@@ -18,30 +18,26 @@
                 <button type="button" title="Shrink letters" id="shrink">-</button>
                 <button type="button" title="Enlarge letters" id="enlarge">+</button>
                 <button type="button" id="langSwitch" title="Switch language (Ctrl+Shift), Esc for English" style="margin-left: 10px; font-weight: bold;">RU</button>
+                <button type="button" id="addTextarea" style="margin-left: 10px;">+ Add Doc</button>
             </p>
 
-            <div class="editor-container">
-                <div class="editor-pane">
-                    <label id="keyboardLabel">Russian Keyboard Input</label>
-                    <textarea id="editor" name="editor"></textarea>
-                </div>
-                <div class="editor-pane">
-                    <label>Notes</label>
-                    <textarea id="notes" name="notes" placeholder="Type notes here..."></textarea>
-                </div>
+            <div id="editor-container" class="editor-container">
+                <!-- Textareas will be created dynamically -->
             </div>
-
-            <div id="keyboard"></div>
 
             <div class="wrap-collapsible">
                 <input id="collapsible" class="toggle" type="checkbox">
-                <label for="collapsible" class="lbl-toggle">More Info</label>
+                <label for="collapsible" class="lbl-toggle">Keyboard & Info</label>
                 <div class="collapsible-content">
                     <div class="content-inner">
-                        <p>This <em>Cyrillic Keyboard</em> enables you to easily type Russian and Belarusian online without installing a Cyrillic keyboard. You can use your computer keyboard or mouse to type Cyrillic letters with this online keyboard.</p>
-                        <p>Press <span class="button">Ctrl+Shift</span> to switch between Russian and Belarusian layouts.</p>
-                        <p>Pressing <span class="button">Esc</span> on the Cyrillic keyboard layout will toggle the mouse input between virtual QWERTY keyboard and virtual Cyrillic keyboard.</p>
-                        <p>Press <span class="button">Shift</span> for additional Cyrillic letters that are not visible on the keyboard.</p>
+                        <div id="keyboard"></div>
+                        
+                        <div class="info-section">
+                            <p>This <em>Cyrillic Keyboard</em> enables you to easily type Russian and Belarusian online without installing a Cyrillic keyboard. You can use your computer keyboard or mouse to type Cyrillic letters with this online keyboard.</p>
+                            <p>Press <span class="button">Ctrl+Shift</span> to switch between Russian and Belarusian layouts.</p>
+                            <p>Pressing <span class="button">Esc</span> on the Cyrillic keyboard layout will toggle the mouse input between virtual QWERTY keyboard and virtual Cyrillic keyboard.</p>
+                            <p>Press <span class="button">Shift</span> for additional Cyrillic letters that are not visible on the keyboard.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -72,8 +68,6 @@
         function switchLanguage() {
             currentLangIndex = (currentLangIndex + 1) % langs.length;
             const lang = langs[currentLangIndex];
-            
-            document.getElementById('keyboardLabel').textContent = langNames[lang] + ' Keyboard Input';
             
             keyboardInstance.charMap = charMaps[lang];
             keyboardInstance.build();
