@@ -1,3 +1,1 @@
 User-agent: *
-Disallow: /ru.html
-Disallow: /by.html
